@@ -10,12 +10,12 @@
 [workspace]
 
 [package]
-name = "xmip-template-rust"
+name = "xmip-core-authorize-scope"
 version = "0.1.0"
 edition = "2024"
 license = "AGPL-3.0-or-later"
-repository = "https://github.com/IlleNilsson/xmip-template-rust"
-description = "Starter template for a Rust Xmip module repository."
+repository = "https://github.com/IlleNilsson/xmip-core-authorize-scope"
+description = "Authorize by scope: decides by the scopes a token carries against the scope an action needs; a transport-layer policy."
 publish = false
 
 [lib]
