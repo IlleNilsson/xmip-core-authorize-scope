@@ -1,12 +1,6 @@
 # xmip-core-authorize-scope
 
-Authorize by scope: decides by the scopes a token carries against the scope an action needs; a transport-layer policy. A technology of
-[xmip-core-authorize](https://github.com/IlleNilsson/xmip-core-authorize).
-
-Declared and not yet written; `architecture.toml` carries the maturity. When
-it is written it implements `Authorizer`, one mechanism at one gate (ADR-0050).
-What it may depend on is `repository-model.md` section 4 and ADR-0044: its
-capability, and no sibling.
+Scope authorization: the scopes a token carries against the scope an action on an artifact needs, as OAuth 2.0 states them; a transport-layer policy. A technology of [xmip-core-authorize](https://github.com/IlleNilsson/xmip-core-authorize).
 
 ## Toolchain
 
