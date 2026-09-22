@@ -8,10 +8,11 @@ use authorize::Action;
 pub struct Requirement {
     /// The point this requirement is for, or every point when `None`.
     pub action: Option<Action>,
-    /// The artifact's name, or every name under a prefix when it ends in `*`.
+    /// The artifact's name as a pattern (`authorize::pattern`): `*` stands
+    /// for any run of characters.
     pub artifact: String,
-    /// The scope the token must carry: a name, or every name under a prefix
-    /// when it ends in `*` — `billing:*` is met by `billing:read`.
+    /// The scope the token must carry, as a pattern: `billing:*` is met by
+    /// `billing:read`.
     pub scope: String,
 }
 
@@ -36,7 +37,8 @@ impl Requirement {
     /// Whether this requirement is about this action on this artifact.
     #[must_use]
     pub fn applies(&self, action: Action, artifact: &str) -> bool {
-        self.action.is_none_or(|own| own == action) && prefix_matches(&self.artifact, artifact)
+        self.action.is_none_or(|own| own == action)
+            && authorize::pattern::matches(&self.artifact, artifact)
     }
 
     /// Whether one of the scopes a token carries meets this requirement.
@@ -44,15 +46,7 @@ impl Requirement {
     pub fn met_by<'a>(&self, carried: impl IntoIterator<Item = &'a str>) -> bool {
         carried
             .into_iter()
-            .any(|scope| prefix_matches(&self.scope, scope))
-    }
-}
-
-/// A name, or every name under a prefix when the pattern ends in `*`.
-fn prefix_matches(pattern: &str, name: &str) -> bool {
-    match pattern.strip_suffix('*') {
-        Some(prefix) => name.starts_with(prefix),
-        None => pattern == name,
+            .any(|scope| authorize::pattern::matches(&self.scope, scope))
     }
 }
 
