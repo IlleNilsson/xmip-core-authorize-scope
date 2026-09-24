@@ -18,6 +18,9 @@ path = "src/lib.rs"
 # (repository-model.md). The Authorizer trait is authorize's, the facts it
 # judges are context's, and the layer is xmip-core's.
 authorize = { package = "xmip-core-authorize", git = "https://github.com/IlleNilsson/xmip-core-authorize", branch = "main" }
+# identify for the evidence name the token's scopes are learned under
+# (identify::evidence::SCOPE), which the authenticate technologies write.
+identify = { package = "xmip-core-identify", git = "https://github.com/IlleNilsson/xmip-core-identify", branch = "main" }
 context = { package = "xmip-core-context", git = "https://github.com/IlleNilsson/xmip-core-context", branch = "main" }
 xcore = { package = "xmip-core", git = "https://github.com/IlleNilsson/xmip-core", branch = "main" }
 

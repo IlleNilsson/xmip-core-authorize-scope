@@ -7,7 +7,7 @@
 //! token is for as a space-separated list of scope names, and the verifier
 //! that accepted the token — `authenticate/oauth2` by introspection,
 //! `authenticate/jwt` from the `scope` claim — records that list on the
-//! identity's evidence under the name [`EVIDENCE`]. This policy reads it
+//! identity's evidence under the name [`evidence::SCOPE`]. This policy reads it
 //! there and nowhere else: it never sees the token, and a token that was not
 //! verified has no evidence to read.
 //!
@@ -27,16 +27,12 @@ pub mod requirement;
 
 use authorize::{Attempt, Authorizer, Decision};
 use context::{AuthenticatedIdentity, IdentityFacts};
+use identify::evidence;
 pub use requirement::Requirement;
 use xcore::Layer;
 
 /// The manifest leaf, and what a denial says it was denied by.
 pub const NAME: &str = "scope";
-
-/// The evidence name the verifier records a token's scopes under: the
-/// space-separated list as the authorization server stated it, and one
-/// entry per statement where there were several.
-pub const EVIDENCE: &str = "scope";
 
 /// The requirements, all of which must be met where they apply.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -68,7 +64,7 @@ pub fn carried(identity: &AuthenticatedIdentity) -> Vec<&str> {
     identity
         .evidence
         .iter()
-        .filter(|(name, _)| name == EVIDENCE)
+        .filter(|(name, _)| name == evidence::SCOPE)
         .flat_map(|(_, value)| value.split_whitespace())
         .collect()
 }
@@ -134,7 +130,7 @@ mod tests {
         );
 
         for statement in scopes {
-            identity = identity.with_evidence(EVIDENCE, *statement);
+            identity = identity.with_evidence(evidence::SCOPE, *statement);
         }
 
         IdentityFacts::evaluate(Alignment::None, identity, None)
