@@ -139,13 +139,13 @@ mod tests {
     fn billing() -> Scope {
         Scope::new()
             .requiring(Requirement::new("Billing", "billing:*").for_action(Action::Send))
-            .requiring(Requirement::new("Billing", "partner").for_action(Action::Send))
+            .requiring(Requirement::new("Billing", "party").for_action(Action::Send))
     }
 
     #[test]
     fn a_token_carrying_every_required_scope_is_allowed() {
         let decision = billing().decide(
-            &bearer(&["partner billing:write"]),
+            &bearer(&["party billing:write"]),
             &Attempt::new(Action::Send, "Billing"),
         );
 
@@ -155,7 +155,7 @@ mod tests {
     #[test]
     fn a_missing_scope_is_denied_by_scope_naming_it_and_what_the_token_carries() {
         let decision = billing().decide(
-            &bearer(&["partner", "orders:read"]),
+            &bearer(&["party", "orders:read"]),
             &Attempt::new(Action::Send, "Billing"),
         );
 
@@ -163,7 +163,7 @@ mod tests {
             decision.map(|decision| decision.to_string()),
             Some(
                 "denied by scope: send on 'Billing' needs scope 'billing:*', and the token \
-                 carries partner orders:read"
+                 carries party orders:read"
                     .to_string()
             )
         );
