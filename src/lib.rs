@@ -19,6 +19,11 @@
 //! denial names the scope that was missing and what the token carried, so
 //! the operator reading it can tell a wrong token from a wrong rule.
 //!
+//! **A constraint, never a grant.** A token that meets every requirement
+//! is not thereby permitted: the policy answers `None`, as `Freshness`
+//! does, and the gate opens only where another policy grants. A scope says
+//! what a token is for, not that its holder may do it here.
+//!
 //! Transport layer (ADR-0050 section 5): the identity judged is the one
 //! accountable for the transmission, `IdentityFacts::accountable()`, because
 //! that is the connection the token arrived on.
@@ -94,9 +99,9 @@ impl Authorizer for Scope {
             .iter()
             .find(|requirement| !requirement.met_by(scopes.iter().copied()));
 
-        let Some(requirement) = missing else {
-            return Some(Decision::Allowed);
-        };
+        // A constraint and not a grant: a token that carries what is needed
+        // has passed, and it is another policy's grant that opens the gate.
+        let requirement = missing?;
 
         let has = if scopes.is_empty() {
             "carries no scope".to_string()
@@ -143,20 +148,28 @@ mod tests {
     }
 
     #[test]
-    fn a_token_carrying_every_required_scope_is_allowed() {
-        let decision = billing().decide(
-            &bearer(&["party billing:write"]),
-            &Attempt::new(Action::Send, "Billing"),
-        );
+    fn a_token_carrying_every_required_scope_passes_and_is_no_grant() {
+        let token = bearer(&["party billing:write"]);
+        let attempt = Attempt::now(Action::Send, "Billing");
 
-        assert_eq!(decision, Some(Decision::Allowed));
+        assert_eq!(billing().decide(&token, &attempt), None);
+        // A scope alone never opens the gate: with no policy granting, the
+        // gate refuses.
+        let decision = authorize::authorize(
+            &[&billing()],
+            &token,
+            &attempt,
+            context::OnMisalignment::Accept,
+            context::Minimum::TAKEN,
+        );
+        assert!(!decision.allowed(), "{decision}");
     }
 
     #[test]
     fn a_missing_scope_is_denied_by_scope_naming_it_and_what_the_token_carries() {
         let decision = billing().decide(
             &bearer(&["party", "orders:read"]),
-            &Attempt::new(Action::Send, "Billing"),
+            &Attempt::now(Action::Send, "Billing"),
         );
 
         assert_eq!(
@@ -177,18 +190,18 @@ mod tests {
         let token = bearer(&[]);
 
         assert_eq!(
-            policy.decide(&token, &Attempt::new(Action::Receive, "Billing")),
+            policy.decide(&token, &Attempt::now(Action::Receive, "Billing")),
             None
         );
         assert_eq!(
-            policy.decide(&token, &Attempt::new(Action::Send, "Payroll")),
+            policy.decide(&token, &Attempt::now(Action::Send, "Payroll")),
             None
         );
     }
 
     #[test]
     fn an_identity_with_no_scope_evidence_is_denied_saying_it_carries_none() {
-        let decision = billing().decide(&bearer(&[]), &Attempt::new(Action::Send, "Billing"));
+        let decision = billing().decide(&bearer(&[]), &Attempt::now(Action::Send, "Billing"));
 
         assert_eq!(
             decision,
