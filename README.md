@@ -6,11 +6,6 @@ It is a constraint, never a grant: a token missing a required scope is
 denied, and one carrying every required scope is answered with no opinion, so
 the gate opens only where another policy grants.
 
-## Toolchain
-
-`rust-toolchain.toml` pins the toolchain for the whole estate. Do not change it
-here.
-
 ## Verification
 
 The included workflow is manual-only and calls the versioned shared workflow at
